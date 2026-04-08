@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wrench, Zap, ClipboardList, Bell, Check } from "lucide-react";
+import { Wrench, Zap, ClipboardList, Bell } from "lucide-react";
 
 const features = [
   {
@@ -37,42 +37,6 @@ const steps = [
     number: "03",
     title: "You send a professional quote in one tap",
     desc: "Review the auto-generated quote and send it back via WhatsApp before your competitor even picks up the phone.",
-  },
-];
-
-const plans = [
-  {
-    name: "Starter",
-    price: "R349",
-    features: [
-      "Up to 20 quotes/mo",
-      "Basic job tracking",
-      "WhatsApp bot",
-      "1 user",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Growth",
-    price: "R699",
-    features: [
-      "Unlimited quotes",
-      "Full job pipeline",
-      "Auto follow-ups",
-      "3 users",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Pro",
-    price: "R1,199",
-    features: [
-      "Everything in Growth",
-      "CRM + client history",
-      "Priority support",
-      "Unlimited users",
-    ],
-    highlighted: false,
   },
 ];
 
@@ -247,77 +211,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Early Access */}
       <section className="py-24 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <p
-            className="text-center text-sm font-semibold mb-3 tracking-wide"
-            style={{ color: "#25D366" }}
-          >
-            Join 200+ South African tradespeople
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-3">
-            Simple, transparent pricing
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Be one of the first
           </h2>
-          <p className="text-center text-gray-500 mb-14">
-            No setup fees. Cancel anytime.
+          <p className="text-gray-500 text-lg mb-10 leading-relaxed">
+            Werkr is currently in early access for South African tradespeople. Get in touch to find out more.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((p) => (
-              <div
-                key={p.name}
-                className={`rounded-2xl p-8 border-2 flex flex-col ${
-                  p.highlighted
-                    ? "border-[#25D366] shadow-xl shadow-green-100"
-                    : "border-gray-200"
-                }`}
-              >
-                {p.highlighted && (
-                  <span
-                    className="text-xs font-semibold uppercase tracking-wide text-white px-3 py-1 rounded-full self-start mb-4"
-                    style={{ backgroundColor: "#25D366" }}
-                  >
-                    Most Popular
-                  </span>
-                )}
-                <h3 className="text-xl font-bold text-gray-900">{p.name}</h3>
-                <div className="mt-2 mb-6">
-                  <span className="text-4xl font-extrabold text-gray-900">
-                    {p.price}
-                  </span>
-                  <span className="text-gray-500 text-sm">/mo</span>
-                </div>
-                <ul className="space-y-3 flex-1">
-                  {p.features.map((feat) => (
-                    <li
-                      key={feat}
-                      className="flex items-center gap-2 text-sm text-gray-700"
-                    >
-                      <Check
-                        className="w-4 h-4 flex-shrink-0"
-                        style={{ color: "#25D366" }}
-                      />
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/demo"
-                  className={`mt-8 block text-center py-3 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 ${
-                    p.highlighted
-                      ? "text-white"
-                      : "text-gray-900 bg-gray-100 hover:bg-gray-200"
-                  }`}
-                  style={p.highlighted ? { backgroundColor: "#25D366" } : {}}
-                >
-                  Start Free Trial
-                </Link>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                  No credit card required
-                </p>
-              </div>
-            ))}
-          </div>
+          <a
+            href="mailto:hello@werkr.co.za"
+            className="inline-block px-8 py-3.5 rounded-lg font-semibold text-white text-base transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#25D366" }}
+          >
+            Request Access
+          </a>
         </div>
       </section>
 
