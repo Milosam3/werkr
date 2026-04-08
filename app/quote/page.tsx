@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, MessageCircle, Loader2 } from "lucide-react";
+import { Copy, MessageCircle } from "lucide-react";
 
 const JOB_TYPES = [
   "Plumbing",
@@ -24,17 +24,18 @@ const JOB_TYPES = [
   "Other",
 ];
 
-function markdownToHtml(md: string): string {
-  return md
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold mt-4 mb-1">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-5 mb-2">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold mt-6 mb-2">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/^---$/gm, '<hr class="my-3 border-gray-200" />')
-    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-    .replace(/\n\n/g, '<br class="my-2" />')
-    .replace(/\n/g, "<br />");
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-ZA", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+interface QuoteMeta {
+  quoteNumber: string;
+  dateIssued: string;
+  validUntil: string;
 }
 
 export default function QuotePage() {
@@ -49,50 +50,68 @@ export default function QuotePage() {
     includeVat: false,
     notes: "",
   });
-  const [quote, setQuote] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [quoteMeta, setQuoteMeta] = useState<QuoteMeta | null>(null);
   const [copied, setCopied] = useState(false);
 
   function set(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const labourHoursNum = parseFloat(form.labourHours || "0");
+  const labourRateNum = parseFloat(form.labourRate || "0");
+  const labourTotal = labourHoursNum * labourRateNum;
+  const materialsCostNum = parseFloat(form.materialsCost || "0");
+  const subtotal = labourTotal + materialsCostNum;
+  const vatAmount = form.includeVat ? subtotal * 0.15 : 0;
+  const total = subtotal + vatAmount;
+
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    setQuote("");
-    try {
-      const res = await fetch("/api/generate-quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate quote");
-      setQuote(data.quote);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    const quoteNumber = `QT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date();
+    const validUntilDate = new Date(now);
+    validUntilDate.setDate(validUntilDate.getDate() + 7);
+    setQuoteMeta({
+      quoteNumber,
+      dateIssued: formatDate(now),
+      validUntil: formatDate(validUntilDate),
+    });
+  }
+
+  function getPlainText(): string {
+    if (!quoteMeta) return "";
+    return [
+      `WERKR — Professional Quote`,
+      `Quote No: ${quoteMeta.quoteNumber}`,
+      `Date Issued: ${quoteMeta.dateIssued}`,
+      `Valid Until: ${quoteMeta.validUntil}`,
+      ``,
+      `Client: ${form.clientName}`,
+      `Phone: ${form.clientPhone}`,
+      `Job Type: ${form.jobType}`,
+      `Description: ${form.jobDescription}`,
+      ``,
+      `ITEMISED BREAKDOWN`,
+      `Labour: ${form.labourHours} hrs @ R${form.labourRate}/hr = R${labourTotal.toFixed(2)}`,
+      `Materials: R${materialsCostNum.toFixed(2)}`,
+      `Subtotal: R${subtotal.toFixed(2)}`,
+      ...(form.includeVat ? [`VAT (15%): R${vatAmount.toFixed(2)}`] : []),
+      `TOTAL: R${total.toFixed(2)}`,
+      ``,
+      `Payment Terms: 50% upfront, balance on completion.`,
+      `Thank you for your business. This quote is valid for 7 days.`,
+      ...(form.notes ? [``, `Notes: ${form.notes}`] : []),
+    ].join("\n");
   }
 
   function handleCopy() {
-    navigator.clipboard.writeText(quote);
+    navigator.clipboard.writeText(getPlainText());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const labourTotal =
-    parseFloat(form.labourHours || "0") * parseFloat(form.labourRate || "0");
-  const subtotal = labourTotal + parseFloat(form.materialsCost || "0");
-  const vatAmount = form.includeVat ? subtotal * 0.15 : 0;
-  const total = subtotal + vatAmount;
-
   const whatsappText = encodeURIComponent(
-    `Hi ${form.clientName || "there"}, please find your quote attached.\n\nJob: ${form.jobType} — ${form.jobDescription}\nTotal: R${total.toFixed(2)}${form.includeVat ? " (incl. VAT)" : ""}\n\nPayment terms: 50% upfront, balance on completion.\nValid for 7 days.\n\nThank you!`
+    `Hi ${form.clientName || "there"}, please find your quote summary below.\n\nQuote: ${quoteMeta?.quoteNumber ?? ""}\nJob: ${form.jobType} — ${form.jobDescription}\nTotal: R${total.toFixed(2)}${form.includeVat ? " (incl. VAT)" : ""}\n\nPayment terms: 50% upfront, balance on completion.\nValid until: ${quoteMeta?.validUntil ?? ""}\n\nThank you for your business!`
   );
 
   return (
@@ -102,7 +121,7 @@ export default function QuotePage() {
           Quote Generator
         </h1>
         <p className="text-gray-500 text-sm mb-8">
-          Fill in the job details — Werkr generates a professional quote via AI.
+          Fill in the job details to generate a professional quote instantly.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -239,7 +258,7 @@ export default function QuotePage() {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Materials</span>
-                    <span>R{parseFloat(form.materialsCost || "0").toFixed(2)}</span>
+                    <span>R{materialsCostNum.toFixed(2)}</span>
                   </div>
                   {form.includeVat && (
                     <div className="flex justify-between text-gray-600">
@@ -255,72 +274,200 @@ export default function QuotePage() {
 
                 <Button
                   type="submit"
-                  disabled={loading}
                   className="w-full text-white font-semibold"
                   style={{ backgroundColor: "#25D366" }}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    "Generate Quote"
-                  )}
+                  Generate Quote
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Quote preview */}
-          <div className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
-                {error}
-              </div>
-            )}
-
-            {quote ? (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Generated Quote</CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopy}
-                        className="text-xs"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-1" />
-                        {copied ? "Copied!" : "Copy"}
-                      </Button>
-                      <a
-                        href={`https://wa.me/${form.clientPhone.replace(/\D/g, "")}?text=${whatsappText}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button
-                          size="sm"
-                          className="text-xs text-white"
-                          style={{ backgroundColor: "#25D366" }}
-                        >
-                          <MessageCircle className="w-3.5 h-3.5 mr-1" />
-                          Send via WhatsApp
-                        </Button>
-                      </a>
+          {/* Quote card */}
+          <div>
+            {quoteMeta ? (
+              <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden">
+                {/* Header */}
+                <div className="px-7 pt-7 pb-5 border-b border-gray-100">
+                  <p className="text-[9px] font-bold tracking-[0.18em] text-gray-400 uppercase mb-4">
+                    WERKR
+                  </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Quote
+                      </h2>
+                      <p className="text-sm font-medium text-gray-400 mt-0.5">
+                        {quoteMeta.quoteNumber}
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-gray-500 space-y-1 pt-1">
+                      <p>
+                        Issued:{" "}
+                        <span className="text-gray-800 font-medium">
+                          {quoteMeta.dateIssued}
+                        </span>
+                      </p>
+                      <p>
+                        Valid until:{" "}
+                        <span className="text-gray-800 font-medium">
+                          {quoteMeta.validUntil}
+                        </span>
+                      </p>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className="prose prose-sm max-w-none text-gray-800 leading-relaxed text-sm"
-                    dangerouslySetInnerHTML={{ __html: markdownToHtml(quote) }}
-                  />
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* Client + job type */}
+                <div className="px-7 py-5 border-b border-gray-100 grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">
+                      Prepared For
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {form.clientName}
+                    </p>
+                    <p className="text-sm text-gray-500">{form.clientPhone}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">
+                      Job Type
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {form.jobType}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="px-7 py-5 border-b border-gray-100">
+                  <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">
+                    Description of Work
+                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {form.jobDescription}
+                  </p>
+                </div>
+
+                {/* Itemised table */}
+                <div className="px-7 py-5">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase pb-3">
+                          Item
+                        </th>
+                        <th className="text-right text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase pb-3">
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-50">
+                        <td className="py-2.5 text-gray-700">
+                          Labour — {form.labourHours} hrs @ R{form.labourRate}
+                          /hr
+                        </td>
+                        <td className="py-2.5 text-right text-gray-700 tabular-nums">
+                          R{labourTotal.toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-50">
+                        <td className="py-2.5 text-gray-700">Materials</td>
+                        <td className="py-2.5 text-right text-gray-700 tabular-nums">
+                          R{materialsCostNum.toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-200">
+                        <td className="py-2.5 text-gray-500">Subtotal</td>
+                        <td className="py-2.5 text-right text-gray-500 tabular-nums">
+                          R{subtotal.toFixed(2)}
+                        </td>
+                      </tr>
+                      {form.includeVat && (
+                        <tr className="border-b border-gray-200">
+                          <td className="py-2.5 text-gray-500">VAT (15%)</td>
+                          <td className="py-2.5 text-right text-gray-500 tabular-nums">
+                            R{vatAmount.toFixed(2)}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr
+                        style={{
+                          borderTop: "2px solid #25D366",
+                        }}
+                      >
+                        <td className="pt-4 pb-1 font-bold text-base text-gray-900 tracking-wide">
+                          TOTAL
+                        </td>
+                        <td
+                          className="pt-4 pb-1 text-right font-bold text-xl tabular-nums"
+                          style={{ color: "#25D366" }}
+                        >
+                          R{total.toFixed(2)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* Notes */}
+                {form.notes && (
+                  <div className="px-7 pb-5">
+                    <p className="text-[9px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">
+                      Notes
+                    </p>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {form.notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="px-7 py-5 bg-gray-50 border-t border-gray-100 space-y-1">
+                  <p className="text-xs text-gray-600">
+                    <span className="font-semibold text-gray-800">
+                      Payment Terms:
+                    </span>{" "}
+                    50% upfront, balance on completion.
+                  </p>
+                  <p className="text-xs text-gray-500 italic">
+                    Thank you for your business. This quote is valid for 7 days.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="px-7 py-5 flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    className="flex-1 text-xs h-9"
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-1.5" />
+                    {copied ? "Copied!" : "Copy Quote"}
+                  </Button>
+                  <a
+                    href={`https://wa.me/${form.clientPhone.replace(/\D/g, "")}?text=${whatsappText}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
+                  >
+                    <Button
+                      size="sm"
+                      className="w-full text-xs h-9 text-white font-semibold"
+                      style={{ backgroundColor: "#25D366" }}
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+                      Send via WhatsApp
+                    </Button>
+                  </a>
+                </div>
+              </div>
             ) : (
-              <div className="flex-1 bg-white rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-12 text-center min-h-[400px]">
+              <div className="bg-white rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-12 text-center min-h-[400px]">
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
                   style={{ backgroundColor: "#dcfce7" }}
@@ -332,8 +479,8 @@ export default function QuotePage() {
                 </div>
                 <p className="text-gray-500 text-sm">
                   Fill in the form and click{" "}
-                  <strong>Generate Quote</strong> to create a professional
-                  quote powered by Claude AI.
+                  <strong>Generate Quote</strong> to create a professional quote
+                  instantly.
                 </p>
               </div>
             )}
