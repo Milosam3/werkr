@@ -204,7 +204,7 @@ Sent via Werkr`;
               <Label>Job type</Label>
               <Select
                 value={form.jobType}
-                onValueChange={(v) => set("jobType", v)}
+                onValueChange={(v) => set("jobType", v ?? "")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select job type" />
