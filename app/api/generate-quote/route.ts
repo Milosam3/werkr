@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       .join("\n");
 
     const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001", // Fast + cheap — ideal for this kind of structured extraction
+      model: "claude-haiku-20240307", // Fast + cheap — ideal for this kind of structured extraction
       max_tokens: 512,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
