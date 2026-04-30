@@ -12,6 +12,7 @@ const links = [
   { href: "/quote", label: "Quote Generator" },
   { href: "/follow-up", label: "Follow-ups" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/websites", label: "Websites" },
 ];
 
 export default function Navbar() {
@@ -26,7 +27,7 @@ export default function Navbar() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#25D366" }}>
               <Wrench className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Werkr</span>
+            <span className="text-xl font-bold text-gray-900">Fiksr</span>
           </Link>
 
           {/* Desktop links */}
