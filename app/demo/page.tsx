@@ -52,6 +52,7 @@ function DemoContent() {
   const fiksrWa = `https://wa.me/27828203489?text=Hey%2C%20I%27d%20like%20to%20set%20up%20Fiksr%20for%20my%20business`
   const services = getServices(category)
   const [headline, subline] = getTagline(category, area)
+  const formatPhone = (p: string) => p.replace(/^(0[0-9]{2})(\d{3})(\d{4})$/, "$1 $2 $3");
   const firstName = name.split(' ')[0]
 
   return (
@@ -83,7 +84,7 @@ function DemoContent() {
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#25d366', color: '#fff', fontWeight: 700, padding: '14px 28px', borderRadius: 8, textDecoration: 'none', fontSize: 15 }}>💬 WhatsApp for a Quote</a>
-          <a href={`tel:${phone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: '#fff', fontWeight: 600, padding: '14px 28px', borderRadius: 8, textDecoration: 'none', fontSize: 15, border: '1px solid #2a3a5a' }}>📞 Call {phone}</a>
+          <a href={`tel:${phone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: '#fff', fontWeight: 600, padding: '14px 28px', borderRadius: 8, textDecoration: 'none', fontSize: 15, border: '1px solid #2a3a5a' }}>📞 Call {formatPhone(phone)}</a>
         </div>
         <div style={{ display: 'flex', gap: 24, marginTop: 32, flexWrap: 'wrap' }}>
           {['Registered & Insured', 'Fast Response', `${area} Based`, `${reviews}+ Happy Clients`].map(b => (
