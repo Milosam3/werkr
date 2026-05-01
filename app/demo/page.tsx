@@ -3,136 +3,146 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+const SERVICE_MAP: Record<string, string[]> = {
+  'electrician': ['Fault Finding', 'Distribution Boards', 'Emergency Callouts', 'General Electrical', 'COC Certificates', 'Solar Installation'],
+  'plumber': ['Burst Pipes', 'Geyser Repairs', 'Drain Unblocking', 'Leak Detection', 'Bathroom Fitting', 'Emergency Callouts'],
+  'panel beater': ['Accident Repairs', 'Spray Painting', 'Dent Removal', 'Bumper Repairs', 'Insurance Work', 'Full Respray'],
+  'locksmith': ['Emergency Lockout', 'Lock Replacements', 'Key Cutting', 'Safe Opening', 'Security Upgrades', 'Transponder Keys'],
+  'mechanic': ['Full Service', 'Engine Diagnostics', 'Brakes & Clutch', 'Tyres & Suspension', 'Gearbox Repairs', 'Roadworthy'],
+  'nail': ['Acrylic Nails', 'Gel Nails', 'Nail Art', 'Manicure', 'Pedicure', 'Nail Repairs'],
+  'hair': ['Cut & Style', 'Colour & Highlights', 'Keratin Treatment', 'Braids', 'Blowout', 'Extensions'],
+  'barber': ['Haircut', 'Beard Trim', 'Hot Towel Shave', 'Fade & Taper', 'Kids Cuts', 'Hair Design'],
+  'cellphone': ['Screen Repairs', 'Battery Replacement', 'Charging Port Fixes', 'Software Repairs', 'Water Damage', 'Unlocking'],
+}
+
+function getServices(category: string): string[] {
+  const lower = category.toLowerCase()
+  for (const key of Object.keys(SERVICE_MAP)) {
+    if (lower.includes(key)) return SERVICE_MAP[key]
+  }
+  return ['Professional Service', 'Emergency Callouts', 'Free Quotes', 'Same Day Response', 'Quality Workmanship', 'Guaranteed Work']
+}
+
+function getTagline(category: string, area: string): [string, string] {
+  const lower = category.toLowerCase()
+  if (lower.includes('electri')) return [`${area}'s Trusted Electricians`, 'Available 24/7']
+  if (lower.includes('plumb')) return [`Reliable Plumbers in ${area}`, 'Fast Response Guaranteed']
+  if (lower.includes('panel') || lower.includes('autobody')) return [`Panel Beating Experts in ${area}`, 'Insurance Approved']
+  if (lower.includes('lock')) return [`24/7 Locksmith in ${area}`, 'Fast & Reliable']
+  if (lower.includes('mech')) return [`Trusted Mechanics in ${area}`, 'Fair Prices, Quality Work']
+  if (lower.includes('nail')) return [`Nail Studio in ${area}`, 'Walk-ins Welcome']
+  if (lower.includes('hair')) return [`Hair Salon in ${area}`, 'Book Today']
+  if (lower.includes('barber')) return [`Barber Shop in ${area}`, 'Fresh Cuts Daily']
+  if (lower.includes('cell') || lower.includes('phone')) return [`Phone Repairs in ${area}`, 'While You Wait']
+  return [`${category} in ${area}`, 'Professional & Reliable']
+}
+
+const ICONS = ['⚡', '🔧', '🛡️', '📞', '⭐', '✅']
+
 function DemoContent() {
   const params = useSearchParams()
-
-  const name = params.get('name') || 'Your Business Name'
+  const name = params.get('name') || 'Your Business'
   const phone = params.get('phone') || '0800000000'
   const category = params.get('category') || 'Service Business'
   const rating = params.get('rating') || '5.0'
-  const reviews = params.get('reviews') || '0'
+  const reviews = params.get('reviews') || '24'
   const area = params.get('area') || 'Johannesburg'
-
   const stars = Math.round(parseFloat(rating))
-  const waLink = `https://wa.me/27${phone.replace(/^0/, '')}`
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const waLink = `https://wa.me/27${phone.replace(/^0/, '')}?text=Hi%2C%20I%27d%20like%20to%20get%20a%20quote`
+  const fiksrWa = `https://wa.me/27828203489?text=Hey%2C%20I%27d%20like%20to%20set%20up%20Fiksr%20for%20my%20business`
+  const services = getServices(category)
+  const [headline, subline] = getTagline(category, area)
+  const firstName = name.split(' ')[0]
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-
-      {/* Top bar */}
-      <div className="bg-green-600 text-white text-center text-sm py-2 px-4 font-medium">
-        ⚡ This is a free demo built by Fiksr — claim your live page in 10 minutes
+    <div style={{ fontFamily: 'system-ui, sans-serif', background: '#0a1628', minHeight: '100vh', color: '#fff' }}>
+      <div style={{ background: '#1a2a4a', borderBottom: '1px solid #2a3a5a', padding: '8px 16px', textAlign: 'center', fontSize: 13, color: '#94a3b8' }}>
+        ⚡ Free demo by <strong style={{ color: '#f5c518' }}>Fiksr</strong> — this page could be live for {firstName} in 24hrs ·{' '}
+        <a href={fiksrWa} style={{ color: '#f5c518', textDecoration: 'none' }}>Claim it →</a>
       </div>
-
-      {/* Hero */}
-      <div className="max-w-2xl mx-auto px-6 pt-12 pb-8">
-
-        {/* Business card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6">
-
-          {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center text-2xl font-bold mb-5">
-            {name.charAt(0)}
-          </div>
-
-          <h1 className="text-2xl font-bold mb-1">{name}</h1>
-          <p className="text-zinc-400 text-sm mb-4">{category} · {area}</p>
-
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-6">
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map(i => (
-                <span key={i} className={i <= stars ? 'text-yellow-400' : 'text-zinc-700'} style={{fontSize: 16}}>★</span>
-              ))}
-            </div>
-            <span className="text-white font-semibold">{rating}</span>
-            <span className="text-zinc-400 text-sm">({reviews} Google reviews)</span>
-          </div>
-
-          {/* CTA */}
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-4 rounded-xl transition-colors text-base"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.5a.5.5 0 0 0 .61.61l5.66-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.677-.52-5.197-1.427l-.373-.22-3.865 1.001 1.001-3.865-.22-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-            </svg>
-            WhatsApp {name.split(' ')[0]}
-          </a>
-
-          <a
-            href={`tel:${phone}`}
-            className="flex items-center justify-center gap-2 w-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-medium py-3 rounded-xl transition-colors text-sm mt-3"
-          >
-            📞 Call {phone}
-          </a>
+      <nav style={{ background: '#0c1f3d', borderBottom: '1px solid #1e3a5f', padding: '14px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: '#f5c518', fontSize: 18 }}>⚡</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{name}</span>
         </div>
-
-        {/* What Werkr does */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
-          <h2 className="text-base font-semibold mb-4 text-zinc-300">What you're missing without a system</h2>
-          <div className="space-y-3">
-            {[
-              ['Missed WhatsApp enquiries', 'Customers message, no reply, they move on'],
-              ['No quote follow-up', 'You quote, never follow up, lose the job'],
-              ['No lead capture', 'Calls come in, no record, no history'],
-              ['Manual everything', 'Reminders, invoices, job tracking — all in your head'],
-            ].map(([title, desc]) => (
-              <div key={title} className="flex gap-3">
-                <span className="text-red-400 mt-0.5" style={{fontSize: 14}}>✕</span>
-                <div>
-                  <p className="text-sm font-medium text-white">{title}</p>
-                  <p className="text-xs text-zinc-500">{desc}</p>
+        <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
+          <a href="#services" style={{ color: '#94a3b8', textDecoration: 'none' }}>Services</a>
+          <a href="#reviews" style={{ color: '#94a3b8', textDecoration: 'none' }}>Reviews</a>
+          <a href={waLink} style={{ color: '#f5c518', textDecoration: 'none', fontWeight: 600 }}>Get Quote</a>
+        </div>
+      </nav>
+      <section style={{ maxWidth: 900, margin: '0 auto', padding: '80px 40px 60px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: '#f5c518', textTransform: 'uppercase', marginBottom: 16 }}>{name.toUpperCase()}</div>
+        <h1 style={{ fontSize: 46, fontWeight: 800, lineHeight: 1.1, margin: '0 0 12px', maxWidth: 580 }}>{headline}</h1>
+        <div style={{ fontSize: 26, fontWeight: 700, color: '#f5c518', marginBottom: 20 }}>{subline}</div>
+        <p style={{ fontSize: 16, color: '#94a3b8', marginBottom: 32, maxWidth: 500, lineHeight: 1.6 }}>Serving {area} and surrounding areas. Professional service, guaranteed workmanship, fast response times.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
+          {[1,2,3,4,5].map(i => (<span key={i} style={{ color: i <= stars ? '#f5c518' : '#2a3a5a', fontSize: 22 }}>★</span>))}
+          <span style={{ fontWeight: 700, fontSize: 18 }}>{rating}</span>
+          <span style={{ color: '#64748b', fontSize: 14 }}>({reviews} Google reviews)</span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#25d366', color: '#fff', fontWeight: 700, padding: '14px 28px', borderRadius: 8, textDecoration: 'none', fontSize: 15 }}>💬 WhatsApp for a Quote</a>
+          <a href={`tel:${phone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: '#fff', fontWeight: 600, padding: '14px 28px', borderRadius: 8, textDecoration: 'none', fontSize: 15, border: '1px solid #2a3a5a' }}>📞 Call {phone}</a>
+        </div>
+        <div style={{ display: 'flex', gap: 24, marginTop: 32, flexWrap: 'wrap' }}>
+          {['Registered & Insured', 'Fast Response', `${area} Based`, `${reviews}+ Happy Clients`].map(b => (
+            <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b' }}><span style={{ color: '#f5c518' }}>✓</span> {b}</div>
+          ))}
+        </div>
+      </section>
+      <section id="services" style={{ background: '#0c1f3d', padding: '60px 40px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Our Services</h2>
+          <p style={{ textAlign: 'center', color: '#64748b', fontSize: 14, marginBottom: 40 }}>Professional {category} services across {area}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+            {services.map((s, i) => (
+              <div key={s} style={{ background: '#0a1628', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px' }}>
+                <div style={{ marginBottom: 10, fontSize: 20 }}>{ICONS[i % ICONS.length]}</div>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>{s}</div>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Professional service, guaranteed results</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section id="reviews" style={{ padding: '60px 40px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', fontSize: 20, color: '#f5c518', marginBottom: 8 }}>★★★★★</div>
+          <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>What Customers Say</h2>
+          <p style={{ textAlign: 'center', color: '#64748b', fontSize: 14, marginBottom: 40 }}>{rating} stars · {reviews} reviews on Google</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+            {([['Excellent work, very professional and fast. Highly recommended!', 'Thabo M.'],['Called them in an emergency, arrived quickly and sorted everything. Great service.', 'Sarah K.'],['Fair pricing, quality workmanship. Will definitely use again.', 'Pieter V.']] as [string,string][]).map(([quote, author]) => (
+              <div key={author} style={{ background: '#0c1f3d', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px' }}>
+                <div style={{ color: '#f5c518', fontSize: 14, marginBottom: 12 }}>★★★★★</div>
+                <p style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.6, marginBottom: 16 }}>"{quote}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1e3a5f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#f5c518' }}>{author[0]}</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{author}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Google Review</div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Werkr fixes */}
-        <div className="bg-zinc-900 border border-green-900 rounded-2xl p-6 mb-8">
-          <h2 className="text-base font-semibold mb-4 text-green-400">Werkr fixes all of this via WhatsApp</h2>
-          <div className="space-y-3">
-            {[
-              'Every enquiry captured and replied to automatically',
-              'Quotes sent as PDFs, followed up 48hrs later',
-              'Full job history per client, tracked from quote to invoice',
-              'All through WhatsApp — no app, no portal, no training',
-            ].map(point => (
-              <div key={point} className="flex gap-3">
-                <span className="text-green-400 mt-0.5" style={{fontSize: 14}}>✓</span>
-                <p className="text-sm text-zinc-300">{point}</p>
-              </div>
-            ))}
-          </div>
+      </section>
+      <section style={{ background: '#0c1f3d', borderTop: '1px solid #1e3a5f', padding: '60px 40px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Ready to get started?</h2>
+        <p style={{ color: '#64748b', fontSize: 15, marginBottom: 32 }}>WhatsApp us for a fast, free quote</p>
+        <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#25d366', color: '#fff', fontWeight: 700, padding: '16px 36px', borderRadius: 8, textDecoration: 'none', fontSize: 16 }}>💬 WhatsApp {firstName} Now</a>
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid #1e3a5f', fontSize: 12, color: '#334155' }}>
+          Demo page by <a href={fiksrWa} style={{ color: '#f5c518', textDecoration: 'none' }}>Fiksr</a> · fiksr.co.za · hello@fiksr.co.za
         </div>
-
-        {/* Final CTA */}
-        <div className="text-center">
-          <p className="text-zinc-400 text-sm mb-4">From R349/mo · Setup in 24hrs · No contract</p>
-          <a
-            href="https://wa.me/27828203489?text=Hey%2C%20I%27d%20like%20to%20set%20up%20Fiksr%20for%20my%20business"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold px-8 py-4 rounded-xl transition-colors"
-          >
-            Get Fiksr for {name.split(' ')[0]} →
-          </a>
-          <p className="text-zinc-600 text-xs mt-4">fiksr.co.za · hello@fiksr.co.za</p>
-        </div>
-
-      </div>
-    </main>
+      </section>
+    </div>
   )
 }
 
 export default function DemoPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+    <Suspense fallback={<div style={{ background: '#0a1628', minHeight: '100vh' }} />}>
       <DemoContent />
     </Suspense>
   )
