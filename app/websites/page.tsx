@@ -1,5 +1,5 @@
 const waLink =
-  "https://wa.me/27686249387?text=Hi%20Fiksr%2C%20I%20want%20a%20website%20for%20my%20business";
+  "https://wa.me/27828203489?text=Hi%2C%20I%27d%20like%20a%20website%20for%20my%20business";
 
 const problems = [
   "Customer Googles you, finds nothing, calls your competitor instead",
@@ -259,7 +259,7 @@ export default function WebsitesPage() {
             <a href="/demo" className="hover:text-white transition-colors">Demo</a>
             <a href="/quote" className="hover:text-white transition-colors">Quote Generator</a>
             <a
-              href="https://wa.me/27686249387"
+              href="https://wa.me/27828203489"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors"
